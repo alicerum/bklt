@@ -1,5 +1,6 @@
 use std::fmt;
 use std::fmt::Display;
+use std::fs;
 use std::num::ParseIntError;
 use std::error::Error;
 use clap::{crate_version, App, Arg};
@@ -43,20 +44,23 @@ pub struct Options {
     pub set: Option<u8>,
 }
 
+const BACKLIGHT_DIR: &str = "/sys/class/backlight/";
+
 pub fn get_options() -> Result<Options, OptionError> {
     let matches = App::new("bklt")
         .version(crate_version!())
+        .usage("This program tries to deduce correct way of setting backlight in an X \
+            environment.\n    In case it fails to do so, user can set 'M' and 'B' flags \
+            manually.\n    Only one of 's', 'i' or 'd' flags is allowed")
         .arg(Arg::with_name("max-file")
-            .help("location of a file containing max brightness value")
+            .help("optional: location of a file containing max brightness value")
             .short("M")
             .takes_value(true)
-            .default_value("/sys/class/backlight/intel_backlight/max_brightness")
         )
         .arg(Arg::with_name("bri-file")
-            .help("location of a file containing current brightness value")
+            .help("optional: location of a file containing current brightness value")
             .short("B")
             .takes_value(true)
-            .default_value("/sys/class/backlight/intel_backlight/brightness")
         )
         .arg(Arg::with_name("increase")
             .help("amount of percent to increase brightness for")
@@ -75,8 +79,27 @@ pub fn get_options() -> Result<Options, OptionError> {
         )
         .get_matches();
 
-    let max_file = matches.value_of("max-file").unwrap();
-    let bri_file = matches.value_of("bri-file").unwrap();
+    let max_file = matches.value_of("max-file");
+    let bri_file = matches.value_of("bri-file");
+
+    let mut driver = "".to_string();
+
+    if max_file.is_none() || bri_file.is_none() {
+        driver = determine_backlight()?;
+    }
+
+    let max_file = match max_file {
+        Some(s) => s.to_string(),
+        None => driver.clone() + "/max_brightness",
+    };
+    let bri_file = match bri_file {
+        Some(s) => s.to_string(),
+        None => driver + "/brightness",
+    };
+
+    println!("{}", max_file);
+    println!("{}", bri_file);
+
     let inc = matches.value_of("increase");
     let dec = matches.value_of("decrease");
     let set = matches.value_of("set");
@@ -105,4 +128,26 @@ pub fn get_options() -> Result<Options, OptionError> {
             _ => None,
         },
     })
+}
+
+fn determine_backlight() -> Result<String, OptionError> {
+    let mut contents = match fs::read_dir(BACKLIGHT_DIR) {
+        Ok(c) => c,
+        Err(_) => return Err(OptionError::from(
+                &format!(
+                    "could not read directory '{}', consider setting 'M' and 'B' flags",
+                    BACKLIGHT_DIR,
+                ))),
+    };
+
+    let first = match contents.next() {
+        Some(f) => f,
+        None => return Err(OptionError::from(
+                &format!(
+                    "empty '{}', consider setting 'M' and 'B' flags",
+                    BACKLIGHT_DIR,
+                ))),
+    };
+
+    Ok(first.unwrap().path().to_str().unwrap().into())
 }

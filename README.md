@@ -6,30 +6,32 @@ It as a small utility with purpose of changing screen brightness on laptops runn
 Program usage is pretty self explanatory from program help.
 
 ```
-SAGE:
-    bklt [OPTIONS]
+bklt 0.1.0
+
+USAGE:
+    This program tries to deduce correct way of setting backlight in an X environment.
+    In case it fails to do so, user can set 'M' and 'B' flags manually.
+    Only one of 's', 'i' or 'd' flags is allowed
 
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
 
 OPTIONS:
-    -B <bri-file>        location of a file containing current brightness value [default:
-                         /sys/class/backlight/intel_backlight/brightness]
+    -B <bri-file>        optional: location of a file containing current brightness value
     -d <decrease>        amount of percent to decrease brightness for
     -i <increase>        amount of percent to increase brightness for
-    -M <max-file>        location of a file containing max brightness value [default:
-                         /sys/class/backlight/intel_backlight/max_brightness]
+    -M <max-file>        optional: location of a file containing max brightness value
     -s <set>             value in percent to set brightness to
 ```
 
 ## Install
 Use `crate` to build from source:
 ```
-crate build --release
+cargo build --release
 ```
 Or install via crate:
 ```
-crate install --git https://github.com/alicerum/bklt
+cargo install --git https://github.com/alicerum/bklt
 ```
 
