@@ -33,6 +33,7 @@ impl Display for OptionError {
 
 impl Error for OptionError {}
 
+#[derive(Debug)]
 pub struct Options {
     pub max_file: String,
     pub bri_file: String,
