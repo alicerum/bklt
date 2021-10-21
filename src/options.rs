@@ -97,9 +97,6 @@ pub fn get_options() -> Result<Options, OptionError> {
         None => driver + "/brightness",
     };
 
-    println!("{}", max_file);
-    println!("{}", bri_file);
-
     let inc = matches.value_of("increase");
     let dec = matches.value_of("decrease");
     let set = matches.value_of("set");
