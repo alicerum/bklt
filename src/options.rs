@@ -1,9 +1,9 @@
+use clap::{crate_version, App, Arg};
+use std::error::Error;
 use std::fmt;
 use std::fmt::Display;
 use std::fs;
 use std::num::ParseIntError;
-use std::error::Error;
-use clap::{crate_version, App, Arg};
 
 #[derive(Debug)]
 pub struct OptionError {
@@ -20,9 +20,7 @@ impl OptionError {
 
 impl From<ParseIntError> for OptionError {
     fn from(_: ParseIntError) -> Self {
-        OptionError::from(
-            &format!("error parsing numeric argument")
-        )
+        OptionError::from(&format!("error parsing numeric argument"))
     }
 }
 
@@ -49,33 +47,40 @@ const BACKLIGHT_DIR: &str = "/sys/class/backlight/";
 pub fn get_options() -> Result<Options, OptionError> {
     let matches = App::new("bklt")
         .version(crate_version!())
-        .usage("This program tries to deduce correct way of setting backlight in an X \
+        .usage(
+            "This program tries to deduce correct way of setting backlight in an X \
             environment.\n    In case it fails to do so, user can set 'M' and 'B' flags \
-            manually.\n    Only one of 's', 'i' or 'd' flags is allowed")
-        .arg(Arg::with_name("max-file")
-            .help("optional: location of a file containing max brightness value")
-            .short("M")
-            .takes_value(true)
+            manually.\n    Only one of 's', 'i' or 'd' flags is allowed",
         )
-        .arg(Arg::with_name("bri-file")
-            .help("optional: location of a file containing current brightness value")
-            .short("B")
-            .takes_value(true)
+        .arg(
+            Arg::with_name("max-file")
+                .help("optional: location of a file containing max brightness value")
+                .short("M")
+                .takes_value(true),
         )
-        .arg(Arg::with_name("increase")
-            .help("amount of percent to increase brightness for")
-            .short("i")
-            .takes_value(true)
+        .arg(
+            Arg::with_name("bri-file")
+                .help("optional: location of a file containing current brightness value")
+                .short("B")
+                .takes_value(true),
         )
-        .arg(Arg::with_name("decrease")
-            .help("amount of percent to decrease brightness for")
-            .short("d")
-            .takes_value(true)
+        .arg(
+            Arg::with_name("increase")
+                .help("amount of percent to increase brightness for")
+                .short("i")
+                .takes_value(true),
         )
-        .arg(Arg::with_name("set")
-            .help("value in percent to set brightness to")
-            .short("s")
-            .takes_value(true)
+        .arg(
+            Arg::with_name("decrease")
+                .help("amount of percent to decrease brightness for")
+                .short("d")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("set")
+                .help("value in percent to set brightness to")
+                .short("s")
+                .takes_value(true),
         )
         .get_matches();
 
@@ -101,15 +106,18 @@ pub fn get_options() -> Result<Options, OptionError> {
     let dec = matches.value_of("decrease");
     let set = matches.value_of("set");
 
-    let amount_set: u8 = [inc, dec, set].iter().map(|x| if x.is_some() {1} else {0}).sum();
+    let amount_set: u8 = [inc, dec, set]
+        .iter()
+        .map(|x| if x.is_some() { 1 } else { 0 })
+        .sum();
     if amount_set < 1 {
         return Err(OptionError::from("one of 'i', 'd' or 's' must be set"));
     }
     if amount_set > 1 {
         return Err(OptionError::from("only one of 'i', 'd' or 's' must be set"));
     }
-    
-    Ok(Options{
+
+    Ok(Options {
         max_file: String::from(max_file),
         bri_file: String::from(bri_file),
         inc: match inc {
@@ -130,20 +138,22 @@ pub fn get_options() -> Result<Options, OptionError> {
 fn determine_backlight() -> Result<String, OptionError> {
     let mut contents = match fs::read_dir(BACKLIGHT_DIR) {
         Ok(c) => c,
-        Err(_) => return Err(OptionError::from(
-                &format!(
-                    "could not read directory '{}', consider setting 'M' and 'B' flags",
-                    BACKLIGHT_DIR,
-                ))),
+        Err(_) => {
+            return Err(OptionError::from(&format!(
+                "could not read directory '{}', consider setting 'M' and 'B' flags",
+                BACKLIGHT_DIR,
+            )))
+        }
     };
 
     let first = match contents.next() {
         Some(f) => f,
-        None => return Err(OptionError::from(
-                &format!(
-                    "empty '{}', consider setting 'M' and 'B' flags",
-                    BACKLIGHT_DIR,
-                ))),
+        None => {
+            return Err(OptionError::from(&format!(
+                "empty '{}', consider setting 'M' and 'B' flags",
+                BACKLIGHT_DIR,
+            )))
+        }
     };
 
     Ok(first.unwrap().path().to_str().unwrap().into())

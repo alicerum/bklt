@@ -29,21 +29,27 @@ pub fn run() -> Result<(), ProgramError> {
 
     if let Some(s) = o.set {
         if s > 100 {
-            return Err(ProgramError("value of 'set' must be between 0 and 100".into()));
+            return Err(ProgramError(
+                "value of 'set' must be between 0 and 100".into(),
+            ));
         }
         return update::set(&o.bri_file, s, max);
     }
 
     if let Some(i) = o.inc {
         if i > 100 {
-            return Err(ProgramError("value of 'inc' must be between 0 and 100".into()));
+            return Err(ProgramError(
+                "value of 'inc' must be between 0 and 100".into(),
+            ));
         }
         return update::change(&o.bri_file, i as i8, max);
     }
 
     if let Some(d) = o.dec {
         if d > 100 {
-            return Err(ProgramError("value of 'dec' must be between 0 and 100".into()));
+            return Err(ProgramError(
+                "value of 'dec' must be between 0 and 100".into(),
+            ));
         }
         return update::change(&o.bri_file, -(d as i8), max);
     }

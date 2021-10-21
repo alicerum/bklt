@@ -1,5 +1,5 @@
-use std::process;
 use bklt;
+use std::process;
 
 fn main() {
     if let Err(e) = bklt::run() {
